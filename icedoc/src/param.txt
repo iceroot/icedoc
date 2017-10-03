@@ -1,0 +1,4 @@
+username=用户名
+password = 密码
+queryProName = 查询名称
+queryIsPayment=查询已经支付提示
