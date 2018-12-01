@@ -14,6 +14,8 @@ import com.icedoc.doc.Docu;
 import com.icedoc.doc.Params;
 import com.icedoc.doc.Return;
 
+import cn.hutool.core.util.StrUtil;
+
 public class ParamUtils {
 
     public static Map<String, Object> map(Docu docu) {
@@ -112,6 +114,8 @@ public class ParamUtils {
     public static List<Return> str2ReturnList(String str) {
         if (StringUtils.isBlank(str)) {
             return returnListNull();
+        } else if ("java.util.List".equals(str)) {
+            return returnListNull();
         } else {
             String basePath = DocContext.getBasePath();
             String packagePath = str.replace(".", "/");
@@ -163,6 +167,108 @@ public class ParamUtils {
         returnx.setType("");
         list.add(returnx);
         return list;
+    }
+
+    public static String formatType(String type) {
+        if (type == null) {
+            return null;
+        }
+        String[] annotations = { "RequestParam", "ModelAttribute", "ModelAttribute", "PathVariable" };
+        type = type.trim();
+        for (int i = 0; i < annotations.length; i++) {
+            String anno = annotations[i];
+            anno = "@" + anno;
+            if (type.startsWith(anno)) {
+                String other = StrUtil.removePrefix(type, anno);
+                int left = other.indexOf("(");
+                int right = other.lastIndexOf(")");
+                if (left != -1 && right != -1 && right > left) {
+                    String typeValue = StrUtil.subAfter(type, ")", true);
+                    typeValue = StrUtil.trim(typeValue);
+                    return typeValue;
+                } else {
+                    return StrUtil.trim(other);
+                }
+            }
+        }
+        return type;
+    }
+    
+    public static String formatName(String type) {
+        if (type == null) {
+            return null;
+        }
+        String[] annotations = { "RequestParam", "ModelAttribute", "ModelAttribute", "PathVariable" };
+        type = type.trim();
+        for (int i = 0; i < annotations.length; i++) {
+            String anno = annotations[i];
+            anno = "@" + anno;
+            if (type.startsWith(anno)) {
+                String other = StrUtil.removePrefix(type, anno);
+                int left = other.indexOf("(");
+                int right = other.lastIndexOf(")");
+                if (left != -1 && right != -1 && right > left) {
+                    String inner = other.substring(left + 1, right);
+                    if (inner.contains("=")) {
+                        String nameValue = null;
+                        nameValue = analysisInner(inner);
+                        return nameValue;
+                    } else {
+                        if (inner.startsWith("\"") && inner.endsWith("\"") && inner.length() >= 3) {
+                            String nameValue = inner.substring(1, inner.length() - 1);
+                            return nameValue;
+                        }
+                    }
+                } else {
+                    return "@";
+                }
+            }
+        }
+        return "@";
+    }
+
+    private static String analysisInner(String inner) {
+        if (inner == null) {
+            return null;
+        }
+        inner = inner.trim();
+        String[] strs = inner.split(",");
+        for (int i = 0; i < strs.length; i++) {
+            String loopCur = strs[i];
+            if (StrUtil.isNotBlank(loopCur)) {
+                loopCur = loopCur.trim();
+                if (loopCur.contains("=")) {
+                    String left = StrUtil.subBefore(loopCur, "=", false);
+                    String right = StrUtil.subAfter(loopCur, "=", true);
+                    if (StrUtil.isNotBlank(left)) {
+                        left = left.trim();
+                        if ("value".equals(left) || "name".equals(left)) {
+                            right = right.trim();
+                            right = removeQuotes(right);
+                            return right;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 去掉字符串两边的引号
+     * 
+     * @param str
+     * @return
+     */
+    private static String removeQuotes(String str) {
+        if (str == null) {
+            return null;
+        }
+        if (str.startsWith("\"") && str.endsWith("\"") && str.length() >= 3) {
+            String result = str.substring(1, str.length() - 1);
+            return result;
+        }
+        return str;
     }
 
 }

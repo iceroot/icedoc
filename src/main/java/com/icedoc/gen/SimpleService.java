@@ -17,7 +17,7 @@ import cn.hutool.core.util.StrUtil;
 public class SimpleService {
 
     public static void gen(String javaFile, String host, String[] exceptClass, String[] exceptReturnClass,
-            String[] exceptParamClass, String postType, Map<String, String> paramNames) {
+            String[] exceptParamClass, String postType, Map<String, String> paramNames, String suffix) {
         List<String> readLines = FileUtil.readLines(javaFile, "UTF-8");
         Map<String, String> impMap = new HashMap<String, String>();
         int status = 0;
@@ -111,7 +111,7 @@ public class SimpleService {
                         paramBlockListResult = listParam;
                         doc.setIndex(docInex++ + "");
                         doc.setName(defaultNull(describe));
-                        String url = removeLast(host) + addFirst(clasMapping) + addFirst(classMappingParam);
+                        String url = removeLast(host) + addFirst(clasMapping) + addFirst(classMappingParam) + suffix;
                         doc.setUrl(url);
                         if (postType == null) {
                             doc.setType("POST");
@@ -422,6 +422,43 @@ public class SimpleService {
             if (split2.length == 2) {
                 String type = split2[0];
                 String name = split2[1];
+                String oldName = name;
+                if (type.startsWith("@")) {
+                    name = ParamUtils.formatName(type);
+                    type = ParamUtils.formatType(type);
+                    if ("@".equals(name)) {
+                        name = StrUtil.trim(oldName);
+                    }
+                }
+                if (name == null) {
+                    name = "";
+                }
+                if (type == null) {
+                    type = "";
+                }
+                Param param = new Param(type, name);
+                if (ArrayUtil.contains(exceptParamClass, type)) {
+                    continue;
+                }
+                list.add(param);
+            } else if (split2.length >= 3) {
+                String left = StrUtil.subBefore(pr, " ", true);
+                String right = StrUtil.subAfter(pr, " ", true);
+                String type = StrUtil.trim(left);
+                String name = StrUtil.trim(right);
+                if (left != null && left.startsWith("@")) {
+                    name = ParamUtils.formatName(type);
+                    type = ParamUtils.formatType(type);
+                    if (name == null) {
+                        name = "";
+                    }
+                    if ("@".equals(name)) {
+                        name = StrUtil.trim(right);
+                    }
+                    if (type == null) {
+                        type = "";
+                    }
+                }
                 Param param = new Param(type, name);
                 if (ArrayUtil.contains(exceptParamClass, type)) {
                     continue;

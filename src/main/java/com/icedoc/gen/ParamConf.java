@@ -16,8 +16,8 @@ public class ParamConf {
         }
         Setting setting = new Setting(confFile, Charset.forName("UTF-8"), true);
         Map<String, String> map = new HashMap<String, String>();
-        Set<Object> keySet = setting.keySet();
-        for (Object object : keySet) {
+        Set<String> keySet = setting.keySet();
+        for (String object : keySet) {
             String key = object + "";
             String value = setting.getStr(key);
             map.put(key, value);

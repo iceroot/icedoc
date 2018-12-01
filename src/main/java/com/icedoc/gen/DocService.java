@@ -20,21 +20,29 @@ public class DocService {
         DocContext.setPostType(postType);
         File folderFile = new File(folder);
         Map<String, String> paramNames = ParamConf.getParamNames();
-        scan(folderFile, folderOut, paramNames);
         String basePathConf = DocFileUtil.getBasePathConf();
         String confText = basePathConf + "/src/conf.txt";
+        String confTextMaven = basePathConf + "/src/main/resources/conf.txt";
         String title = "";
         String version = "1.0";
         String author = "xxxx";
-        if (FileUtil.exist(confText)) {
+        String suffix = "";
+        if (FileUtil.exist(confText) || FileUtil.exist(confTextMaven)) {
             Setting setting = new Setting("conf.txt");
             title = setting.getStr("title");
             version = setting.getStr("version");
             author = setting.getStr("author");
+            String suffixConf = setting.getStr("suffix");
+            if(StrUtil.isNotBlank(suffixConf)) {
+                suffix = suffixConf;
+            }
         }
+        suffix = StrUtil.removePrefix(suffix, "*");
         DocContext.setTitle(title);
         DocContext.setVersion(version);
+        DocContext.setSuffix(suffix);
         folderOut = StrUtil.removeSuffix(folderOut, "/");
+        scan(folderFile, folderOut, paramNames);
         List<Doc> docList = DocContext.getDocList();
         String basePath = DocContext.getBasePath();
         String projectName = DocFileUtil.getProjectName(basePath);
@@ -52,7 +60,11 @@ public class DocService {
         FileUtil.mkParentDirs(fileName);
         String normalize = FileUtil.normalize(new File(".").getAbsolutePath());
         String simpleName = "doc";
-        String xmlBasePath = normalize += "/src/com/icedoc/doc";
+        String xmlBasePath = normalize + "/src/com/icedoc/doc";
+        String xmlBasePathMaven = normalize + "/src/main/java/com/icedoc/doc";
+        if (!FileUtil.exist(xmlBasePath)) {
+            xmlBasePath = xmlBasePathMaven;
+        }
         String xmlPath = xmlBasePath + "/" + simpleName + ".xml";
         String ftlPath = xmlBasePath + "/" + simpleName + ".ftl";
         String xmlDestPathLeft = StringUtils.substringBeforeLast(xmlBasePath, "src");
@@ -100,11 +112,12 @@ public class DocService {
                     String hostWebName = getWebName(host, projectName);
                     DocContext.setHost(hostWebName);
                     String postType = DocContext.getPostType();
+                    String suffix = DocContext.getSuffix();
                     String[] exceptClass = { "Resource", "Controller", "RequestMapping", "ModelAndView" };
                     String[] exceptReturnClass = { "String", "JSONArray", "JSONObject", "ModelAndView", "Object" };
                     String[] exceptParamClass = { "HttpServletRequest", "HttpServletResponse", "Model" };
                     SimpleService.gen(fullName, hostWebName, exceptClass, exceptReturnClass, exceptParamClass, postType,
-                            paramNames);
+                            paramNames, suffix);
                 }
             }
         } else if (folderFile.isDirectory()) {

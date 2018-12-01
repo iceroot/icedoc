@@ -11,6 +11,7 @@ public class DocContext {
     private static String postType = null;
     private static String title = null;
     private static String version = null;
+    private static String suffix = null;
     private static int index = 1;
     private static List<Doc> docList = new ArrayList<Doc>();
 
@@ -52,6 +53,14 @@ public class DocContext {
 
     public static void setVersion(String version) {
         DocContext.version = version;
+    }
+
+    public static String getSuffix() {
+        return suffix;
+    }
+
+    public static void setSuffix(String suffix) {
+        DocContext.suffix = suffix;
     }
 
     public static List<Doc> getDocList() {

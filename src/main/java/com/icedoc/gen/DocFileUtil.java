@@ -78,7 +78,7 @@ public class DocFileUtil {
                 sb = new StringBuilder();
             } else if (ch == '(') {
                 String before = before(chs, i);
-                if ("@RequestParam".equals(before)) {
+                if ("@RequestParam".equals(before) || "@ModelAttribute".equals(before) || "@PathVariable".equals(before) || "@SessionAttributes".equals(before)) {
                     int rightIndex = paramBlockStr.indexOf(")", i + 1);
                     if (rightIndex == -1) {
                         throw new ParamException("参数括号不匹配");
